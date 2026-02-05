@@ -1,5 +1,6 @@
 package br.com.ruansmolina.nsj_back.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ public class ItemSale {
 
     @ManyToOne
     @JoinColumn(name = "sp_sales_id",nullable = false)
+    @JsonIgnore
     private Sale sale;
 
     @ManyToOne

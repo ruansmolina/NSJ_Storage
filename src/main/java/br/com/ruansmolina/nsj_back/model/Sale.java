@@ -24,8 +24,14 @@ public class Sale {
     private LocalDateTime date;
 
     @Column(name = "sales_total",nullable = false)
-    private BigDecimal total;
+    private BigDecimal total = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL)
     private List<ItemSale> items = new ArrayList<>();
+
+    public void defineTotal(){
+        items.forEach(i->{
+            total = total.add(i.getSubTotal());
+        });
+    }
 }

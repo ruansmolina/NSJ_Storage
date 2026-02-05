@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 
+
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
@@ -25,6 +26,9 @@ public class ProductService {
 
     public List<Product> getAllProducts(){
         return productRepository.findAll();
+    }
+    public List<Product> getSelectedList(List<Long> ids){
+        return productRepository.findAllById(ids);
     }
 
     public Product getProductById(Long id){
