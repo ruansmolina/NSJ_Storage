@@ -1,7 +1,11 @@
 package br.com.ruansmolina.nsj_back.services;
 
+import br.com.ruansmolina.nsj_back.DTO.ItemSaleAddDTO;
+import br.com.ruansmolina.nsj_back.DTO.SaleCreateDTO;
 import br.com.ruansmolina.nsj_back.DTO.StorageAddDTO;
 import br.com.ruansmolina.nsj_back.DTO.StorageResponseDTO;
+import br.com.ruansmolina.nsj_back.exceptions.InsufficientResource;
+import br.com.ruansmolina.nsj_back.exceptions.NotFoundException;
 import br.com.ruansmolina.nsj_back.model.Storage;
 import br.com.ruansmolina.nsj_back.repositories.StorageRepository;
 import org.springframework.stereotype.Service;
@@ -39,5 +43,32 @@ public class StorageService {
         return storageRepository.save(storageResult).getId();
 
     }
+    public Storage getStorage(Long idProd){
+        return storageRepository.findByProductId(idProd).orElseThrow(()-> new NotFoundException("product not found"));
+    }
+    public Boolean verifyQuantity(Long idProd, int quantity){
+        var prod = getStorage(idProd);
+        return prod.getQuantity() >= quantity;
+    }
+    public void  verifyAllQuantity(SaleCreateDTO itemsSale){
+        for(var i :itemsSale.itemsSale()){
+            if(!verifyQuantity(i.idProd(),i.quantity())){
+                throw new InsufficientResource("insufficient quantity");
+            }
+        }
+    }
+    public void removeSaleQuantity(Long idProd, int quantity){
+        if(!verifyQuantity(idProd,quantity)){
+            throw new InsufficientResource("insufficient quantity");
+        }
+        var prod = getStorage(idProd);
+        prod.setQuantity(prod.getQuantity() - quantity);
+        storageRepository.save(prod);
+
+    }
+    public void removeAllSaleQuantity(SaleCreateDTO itemsSale){
+        itemsSale.itemsSale().forEach((i)->removeSaleQuantity(i.idProd(),i.quantity()));
+    }
+
 
 }

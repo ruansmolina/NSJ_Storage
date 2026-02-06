@@ -10,6 +10,7 @@ import br.com.ruansmolina.nsj_back.model.Product;
 import br.com.ruansmolina.nsj_back.model.Sale;
 import br.com.ruansmolina.nsj_back.repositories.SaleRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,16 +23,24 @@ public class SaleService {
     private final SaleRepository saleRepository;
     private final ProductService productService;
     private final ItemSaleMapper itemSaleMapper;
+    private final StorageService storageService;
 
-    public SaleService(SaleRepository saleRepository,ProductService productService,ItemSaleMapper itemSaleMapper
+    public SaleService(SaleRepository saleRepository,
+                       ProductService productService,
+                       StorageService storageService,
+                       ItemSaleMapper itemSaleMapper
                        ){
         this.saleRepository = saleRepository;
         this.productService = productService;
         this.itemSaleMapper = itemSaleMapper;
+        this.storageService = storageService;
     }
 
+    @Transactional
     public SaleResponseDTO createSale(SaleCreateDTO dto){
+        storageService.verifyAllQuantity(dto);
         var sale = new Sale();
+
         var ids = dto.itemsSale().stream().map(ItemSaleAddDTO::idProd).toList();
         var prods = productService.getSelectedList(ids);
         Map<Long, Product> map = prods.stream().collect(Collectors.toMap(Product::getId,product->product));
@@ -47,6 +56,7 @@ public class SaleService {
         sale.setDate(LocalDateTime.now());
         sale.defineTotal();
         var result = saleRepository.save(sale);
+        storageService.removeAllSaleQuantity(dto);
         return new SaleResponseDTO(result);
     }
 
